@@ -9,6 +9,7 @@ class Automaton():
         self.transitions = []
         print("Hi, I'm an automaton!")
 
+    @staticmethod
     def get_sigma(lines, st, dr):
         lista = []
         for i in range(st, dr):
@@ -18,6 +19,7 @@ class Automaton():
             lista.append(word[0])
         return lista
 
+    @staticmethod
     def get_states(lines, st, dr):
         lista = []
         s = 0
@@ -30,6 +32,7 @@ class Automaton():
                     return ["invalid"]
         return lista
 
+    @staticmethod
     def get_transitions(lines, st, dr):
         lista = []
         for i in range(st, dr):
@@ -77,37 +80,37 @@ class Automaton():
         RejectionException.
         """
 
-        lines = [line for line in input_str.split('\n')]
+        lines = input_str.split('\n')
+        lines = [line for line in lines if len(line) and not line.startswith('#')]
+
         n = len(lines) - 1
         i = 0
         while i < n:
-            if lines[i][0] != '#':
-                # inceput de sectiune
-                section = lines[i].split()[0]
-                j = i + 1
-                while j < n and lines[j] != 'End':
-                    j += 1
+            
+            # inceput de sectiune
+            section = lines[i].split()[0]
+            j = i + 1
+            while j < n and lines[j] != 'End':
+                j += 1
 
-                if section == 'Sigma':
-                    self.sigma = Automaton.get_sigma(lines, i + 1, j)
-                    if self.sigma == ["invalid"]:
-                        raise RejectionException()
-                elif section == 'States':
-                    self.states = Automaton.get_states(lines, i + 1, j)
-                    if self.states == ["invalid"]:
-                        raise RejectionException()
-                elif section == 'Transitions':
-                    self.transitions = Automaton.get_transitions(lines, i + 1, j)
-                    if self.transitions == ["invalid"]:
-                        raise RejectionException()
-                else:
+            if section == 'Sigma':
+                self.sigma = Automaton.get_sigma(lines, i + 1, j)
+                if self.sigma == ["invalid"]:
                     raise RejectionException()
-                i = j
-            i += 1
-        
-        pass
+            elif section == 'States':
+                self.states = Automaton.get_states(lines, i + 1, j)
+                if self.states == ["invalid"]:
+                    raise RejectionException()
+            elif section == 'Transitions':
+                self.transitions = Automaton.get_transitions(lines, i + 1, j)
+                if self.transitions == ["invalid"]:
+                    raise RejectionException()
+            else:
+                raise RejectionException()
+            i = j + 1        
     
 
 if __name__ == "__main__":
-    a = Automaton('file.txt')
+    a = Automaton('config.cfg')
     print(a.validate())
+    print(a.sigma)
