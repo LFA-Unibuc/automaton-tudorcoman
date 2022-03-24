@@ -7,7 +7,8 @@ class Automaton():
         self.sigma = []
         self.states = []
         self.transitions = []
-        print("Hi, I'm an automaton!")
+        self.initialState = ""
+        self.finalStates = []
 
     @staticmethod
     def get_sigma(lines, st, dr):
@@ -23,40 +24,47 @@ class Automaton():
     def get_states(lines, st, dr):
         lista = []
         s = 0
+        finalStates = []
         for i in range(st, dr):
             state = [tok.strip() for tok in lines[i].split(',')]
             lista.append(state[0])
             if 'S' in state:
+                initialState = state[0]
                 s += 1
                 if s > 1:
                     return ["invalid"]
-        return lista
+            if 'F' in state:
+                finalStates.append(state[0])
+
+        return (lista, initialState, finalStates)
 
     @staticmethod
     def get_transitions(lines, st, dr):
-        lista = []
+        tr = []
         for i in range(st, dr):
             transition = [x.strip() for x in lines[i].split(',')]
             if len(transition) != 3:
                 return ["invalid"]
-            lista.append((transition[0], transition[1], transition[2]))
-        return lista
+            tr.append(transition)
+        return tr
 
     def validate(self):
         """Return a Boolean
 
         Returns true if the config file is valid,
         and raises a ValidationException if the config is invalid.
-        """
-        
+        """        
+
         with open(self.config_file, "r") as inpf:
             input_str = inpf.read()
-            if not self.accepts_input(input_str):
-                return False
-            else:
+            try:
+                self.read_input(input_str)
                 for transition in self.transitions:
                     if transition[0] not in self.states or transition[2] not in self.states or transition[1] not in self.sigma:
                         return False
+                return True
+            except RejectionException:
+                return False
        
         return True
 
@@ -92,13 +100,15 @@ class Automaton():
             j = i + 1
             while j < n and lines[j] != 'End':
                 j += 1
-
+            
             if section == 'Sigma':
                 self.sigma = Automaton.get_sigma(lines, i + 1, j)
+                
                 if self.sigma == ["invalid"]:
                     raise RejectionException()
             elif section == 'States':
-                self.states = Automaton.get_states(lines, i + 1, j)
+                (self.states, self.initialState, self.finalStates) = Automaton.get_states(lines, i + 1, j)
+                
                 if self.states == ["invalid"]:
                     raise RejectionException()
             elif section == 'Transitions':
@@ -107,8 +117,8 @@ class Automaton():
                     raise RejectionException()
             else:
                 raise RejectionException()
+            
             i = j + 1        
-    
 
 if __name__ == "__main__":
     a = Automaton('config.cfg')
